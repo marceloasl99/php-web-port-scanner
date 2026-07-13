@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Scanner</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        /* Estilo para o aviso de isenção de responsabilidade */
+        .disclaimer {
+            font-size: 0.8em;
+            color: #555;
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            /* Evita que o label ocupe a linha inteira quando não precisa */
+            display: inline; 
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Novo container para a grade de portas */
+        .ports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px; /* Espaçamento entre os itens da grade */
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .port-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .port-option input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .select-all-container {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .select-all-container label {
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table#results {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #results th,
+        #results td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .open {
+            color: green;
+            font-weight: bold;
+        }
+
+        .closed {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Port Scanner</h1>
+
+        <div class="disclaimer">
+            <strong>Aviso:</strong> O uso desta ferramenta é de sua inteira responsabilidade. Certifique-se de que você tem permissão explícita para escanear o endereço IP ou domínio de destino. O escaneamento não autorizado de redes pode ser ilegal.
+        </div>
+
+        <label for="host">Alvo (IP ou URL):</label>
+        <input type="text" id="host" name="host" value="127.0.0.1">
+
+        <h2>Portas Comuns:</h2>
+
+        <div class="select-all-container">
+            <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+            <label for="selectAll">Selecionar Todas as Portas</label>
+        </div>
+
+        <div id="ports-selection-grid" class="ports-grid">
+            <div class="port-option"><input type="checkbox" id="port21" value="21"> <label for="port21">21 (FTP)</label></div>
+            <div class="port-option"><input type="checkbox" id="port22" value="22"> <label for="port22">22 (SSH)</label></div>
+            <div class="port-option"><input type="checkbox" id="port25" value="25"> <label for="port25">25 (SMTP)</label></div>
+            <div class="port-option"><input type="checkbox" id="port53" value="53"> <label for="port53">53 (DNS)</label></div>
+            <div class="port-option"><input type="checkbox" id="port80" value="80"> <label for="port80">80 (HTTP)</label></div>
+            <div class="port-option"><input type="checkbox" id="port110" value="110"> <label for="port110">110 (POP3)</label></div>
+            <div class="port-option"><input type="checkbox" id="port143" value="143"> <label for="port143">143 (IMAP)</label></div>
+            <div class="port-option"><input type="checkbox" id="port443" value="443"> <label for="port443">443 (HTTPS)</label></div>
+            <div class="port-option"><input type="checkbox" id="port3306" value="3306"> <label for="port3306">3306 (MySQL)</label></div>
+            <div class="port-option"><input type="checkbox" id="port5432" value="5432"> <label for="port5432">5432 (PostgreSQL)</label></div>
+            <div class="port-option"><input type="checkbox" id="port8080" value="8080"> <label for="port8080">8080 (HTTP Alt)</label></div>
+            <div class="port-option"><input type="checkbox" id="port8443" value="8443"> <label for="port8443">8443 (HTTPS Alt)</label></div>
+            <div class="port-option"><input type="checkbox" id="port27017" value="27017"> <label for="port27017">27017 (MongoDB)</label></div>
+            <div class="port-option"><input type="checkbox" id="port6379" value="6379"> <label for="port6379">6379 (Redis)</label></div>
+            <div class="port-option"><input type="checkbox" id="port3389" value="3389"> <label for="port3389">3389 (RDP)</label></div>
+            <div class="port-option"><input type="checkbox" id="port5900" value="5900"> <label for="port5900">5900 (VNC)</label></div>
+        </div>
+
+        <label for="otherPorts">Outras portas (separadas por vírgula):</label>
+        <input type="text" id="otherPorts" name="otherPorts">
+
+        <button onclick="scan()">Escanear</button>
+
+        <table id="results">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Porta</th>
+                    <th>IP ou URL</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div id="scan-info">
+            <p id="timestamp"></p>
+            <p id="scan-duration"></p>
+        </div>
+    </div>
+
+    <script>
+        // NOVA FUNÇÃO PARA MARCAR/DESMARCAR TODOS OS CHECKBOXES
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('#ports-selection-grid input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = source.checked;
+            });
+        }
+
+        function scan() {
+            const host = document.getElementById('host').value;
+            const selectedPorts = [];
+
+            // Obtém as portas selecionadas nos checkboxes (seletor atualizado para a nova estrutura)
+            const checkboxes = document.querySelectorAll('#ports-selection-grid input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedPorts.push(checkbox.value);
+                }
+            });
+
+            // Obtém as outras portas digitadas
+            const otherPorts = document.getElementById('otherPorts').value.split(',');
+            otherPorts.forEach(port => {
+                const trimmedPort = port.trim();
+                if (trimmedPort !== "") {
+                    selectedPorts.push(trimmedPort);
+                }
+            });
+
+            // Limpa resultados anteriores
+            document.getElementById('results').getElementsByTagName('tbody')[0].innerHTML = '';
+            
+            if (selectedPorts.length === 0) {
+                alert("Por favor, selecione ao menos uma porta para escanear.");
+                return;
+            }
+
+            const startTime = Date.now(); // Tempo de início do escaneamento
+
+            fetch('scan.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    host: host,
+                    ports: selectedPorts
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsTable = document.getElementById('results').getElementsByTagName('tbody')[0];
+
+                data.forEach(result => {
+                    const row = resultsTable.insertRow();
+                    const statusCell = row.insertCell();
+                    const portCell = row.insertCell();
+                    const hostCell = row.insertCell(); // Nova célula para o IP ou URL
+
+                    statusCell.textContent = result.status;
+                    portCell.textContent = result.port;
+                    hostCell.textContent = host; // Insere o IP ou URL na célula
+
+                    if (result.status === 'Aberta') {
+                        statusCell.classList.add('open');
+                    } else {
+                        statusCell.classList.add('closed');
+                    }
+                });
+
+                const endTime = Date.now(); // Tempo de fim do escaneamento
+                const duration = endTime - startTime; // Tempo total em milissegundos
+
+                const timestamp = new Date().toLocaleString(); // Data e hora atual
+
+                document.getElementById('timestamp').textContent = `Data e hora: ${timestamp}`;
+                document.getElementById('scan-duration').textContent = `Tempo de escaneamento: ${duration}ms`;
+            })
+            .catch(error => {
+                console.error('Erro ao escanear:', error);
+                alert('Ocorreu um erro ao tentar escanear as portas. Verifique o console para mais detalhes.');
+            });
+        }
+    </script>
+</body>
+
+</html>
